@@ -71,24 +71,21 @@ jobs:
             const changedFiles = (process.env.CHANGED_FILES || '').trim();
             const upstream = process.env.UPSTREAM_REPO || '';
             const title = "Upstream update contains protected file changes";
-            const body = `The upstream repository '${upstream}' has updates that modify protected files in branch 'master'.
-
-Changed protected file(s):
-\`\`\`
-${changedList}
-\`\`\`
-
-Full upstream->origin changed files:
-\`\`\`
-${changedFiles}
-\`\`\`
-
-This workflow did NOT merge upstream/master into origin/master. Please review upstream changes and decide how to proceed.`;
+            const body = "The upstream repository '" + upstream + "' has updates that modify protected files in branch 'master'.\n\n" +
+                         "Changed protected file(s):\n" +
+                         "```\n" +
+                         changedList +
+                         "\n```\n\n" +
+                         "Full upstream->origin changed files:\n" +
+                         "```\n" +
+                         changedFiles +
+                         "\n```\n\n" +
+                         "This workflow did NOT merge upstream/master into origin/master. Please review upstream changes and decide how to proceed.";
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              title,
-              body
+              title: title,
+              body: body
             });
         env:
           UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
