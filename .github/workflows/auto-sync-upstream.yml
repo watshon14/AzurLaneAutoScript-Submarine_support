@@ -9,9 +9,7 @@ on:
     - cron: '0 * * * *' # runs hourly; change as needed
 
 env:
-  # Set this secret to "owner/repo" of the upstream (e.g. LmeSzinc/AzurLaneAutoScript)
   UPSTREAM_REPO: ${{ secrets.UPSTREAM_REPO }}
-  # Your protected files (space-separated)
   PROTECTED_FILES: 'config/template.json module/config/argument/args.json module/config/argument/override.yaml module/config/argument/task.yaml'
 
 jobs:
@@ -34,7 +32,6 @@ jobs:
             exit 1
           fi
 
-          # Use token if provided (for private upstreams)
           if [ -n "${{ secrets.UPSTREAM_TOKEN }}" ]; then
             UPSTREAM_URL="https://x-access-token:${{ secrets.UPSTREAM_TOKEN }}@github.com/${{ secrets.UPSTREAM_REPO }}"
           else
@@ -53,7 +50,6 @@ jobs:
       - id: check
         name: Check upstream for protected-file changes
         run: |
-          # Use 'master' as your default branch
           LOCAL_BRANCH=origin/master
           UPSTREAM_BRANCH=upstream/master
 
@@ -87,17 +83,29 @@ jobs:
         run: |
           owner=$(echo "${{ github.repository }}" | cut -d'/' -f1)
           repo=$(echo "${{ github.repository }}" | cut -d'/' -f2)
-          title="Upstream update contains protected file changes"
-          body="The upstream repository '${{ env.UPSTREAM_REPO }}' has updates that modify protected files in branch 'master'.\n\nChanged protected file(s):\n${{ steps.check.outputs.changed_list }}\n\nFull upstream->origin changed files:\n\`\`\`\n${{ steps.check.outputs.changed_files }}\n\`\`\`\n\nThis workflow did NOT merge upstream/master into origin/master. Please review upstream changes and decide how to proceed."
-          # Create JSON safely
+
+          TITLE="Upstream update contains protected file changes"
+
+          BODY="$(cat <<EOF
+The upstream repository '${{ env.UPSTREAM_REPO }}' has updates that modify protected files in branch 'master'.
+
+Changed protected file(s):
+${{ steps.check.outputs.changed_list }}
+
+Full upstream->origin changed files:
+${{ steps.check.outputs.changed_files }}
+
+This workflow did NOT merge upstream/master into origin/master. Please review upstream changes and decide how to proceed.
+EOF
+)"
+
           python3 - <<PY > /tmp/payload.json
-import json,sys
-t = """%s""" % """$title"""
-b = """%s""" % """$body"""
-print(json.dumps({"title": t, "body": b}))
+import os, json
+print(json.dumps({"title": os.environ["TITLE"], "body": os.environ["BODY"]}))
 PY
+
           curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" \
-            https://api.github.com/repos/$owner/$repo/issues \
+            "https://api.github.com/repos/$owner/$repo/issues" \
             -d @/tmp/payload.json
 
       - name: Merge upstream and push
@@ -105,9 +113,7 @@ PY
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # If you use .gitattributes with merge=ours, ensure git config sets the merge driver
           git config --global merge.ours.driver true || true
-
           git checkout master
           git branch backup-before-upstream-merge-$(date +%s)
           git merge --no-edit upstream/master
