@@ -78,26 +78,28 @@ jobs:
 
       - name: Create issue if protected files changed (no merge)
         if: steps.check.outputs.PROTECTED_CHANGED == 'true'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
-          CHANGED_LIST: ${{ steps.check.outputs.changed_list }}
-          CHANGED_FILES: ${{ steps.check.outputs.changed_files }}
-        run: |
-          owner=$(echo "${{ github.repository }}" | cut -d'/' -f1)
-          repo=$(echo "${{ github.repository }}" | cut -d'/' -f2)
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const changedList = `\${{ steps.check.outputs.changed_list }}`.trim();
+            const changedFiles = `\${{ steps.check.outputs.changed_files }}`.trim();
+            const title = "Upstream update contains protected file changes";
+            const body = `The upstream repository '${{ env.UPSTREAM_REPO }}' has updates that modify protected files in branch 'master'.
 
-          export TITLE="Upstream update contains protected file changes"
-          export BODY="The upstream repository '${UPSTREAM_REPO}' has updates that modify protected files in branch 'master'.\n\nChanged protected file(s):\n${CHANGED_LIST}\n\nFull upstream->origin changed files:\n${CHANGED_FILES}\n\nThis workflow did NOT merge upstream/master into origin/master. Please review upstream changes and decide how to proceed."
+Changed protected file(s):
+${changedList}
 
-          python3 - <<PY > /tmp/payload.json
-import os, json
-print(json.dumps({"title": os.environ["TITLE"], "body": os.environ["BODY"]}))
-PY
+Full upstream->origin changed files:
+${changedFiles}
 
-          curl -s -X POST -H "Authorization: token $GITHUB_TOKEN" -H "Accept: application/vnd.github.v3+json" \
-            "https://api.github.com/repos/$owner/$repo/issues" \
-            -d @/tmp/payload.json
+This workflow did NOT merge upstream/master into origin/master. Please review upstream changes and decide how to proceed.`;
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body
+            });
 
       - name: Merge upstream and push
         if: steps.check.outputs.PROTECTED_CHANGED == 'false'
