@@ -8,7 +8,7 @@ on:
     - cron: '0 0 * * *' # runs daily; change as needed
 env:
   UPSTREAM_REPO: ${{ secrets.UPSTREAM_REPO }}
-  PROTECTED_FILES: 'config/template.json module/config/argument/args.json module/config/argument/override.yaml module/config/argument/task.yaml'
+  PROTECTED_FILES: ''
 jobs:
   sync:
     runs-on: ubuntu-latest
