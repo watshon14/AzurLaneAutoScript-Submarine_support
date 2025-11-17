@@ -1629,6 +1629,11 @@
           "z20_or_z21"
         ]
       },
+      "EquipmentCode": {
+        "type": "textarea",
+        "value": "DD: null\nbogue: null\nhermes: null\nlangley: null\nranger: null",
+        "mode": "yaml"
+      },
       "CommissionLimit": {
         "type": "checkbox",
         "value": true
@@ -1829,8 +1834,7 @@
         ],
         "display": "display"
       }
-    },
-    
+    }, 
   "Submarine": {
       "Fleet": {
         "type": "select",
@@ -1871,8 +1875,6 @@
         "display": "hide"
       }
     },
-
-    
     "Storage": {
       "Storage": {
         "type": "storage",
@@ -3558,6 +3560,7 @@
         ],
         "option_en": [
           "war_archives_20220915_cn",
+
           "war_archives_20231026_cn",
           "war_archives_20220428_cn",
           "war_archives_20220728_cn",
@@ -3601,7 +3604,9 @@
           "war_archives_20181020_en"
         ],
         "option_jp": [
+
           "war_archives_20220915_cn",
+
           "war_archives_20231026_cn",
           "war_archives_20220428_cn",
           "war_archives_20220728_cn",
@@ -3646,6 +3651,7 @@
         ],
         "option_tw": [
           "war_archives_20220915_cn",
+
           "war_archives_20231026_cn",
           "war_archives_20220428_cn",
           "war_archives_20220728_cn",
@@ -4075,6 +4081,7 @@
         "type": "state",
         "value": "campaign_main",
         "option": [
+
           "event_20230914_cn",
           "event_20250227_cn"
         ],
@@ -4505,6 +4512,22 @@
         "option_bold": [
           "event_20230914_cn",
           "event_20250227_cn"
+        ],
+        "option_cn": [
+          "event_20230817_cn"
+        ],
+        "option_en": [
+          "event_20230817_cn"
+        ],
+        "option_jp": [
+          "event_20230817_cn"
+        ],
+        "option_tw": [
+          "event_20250912_cn"
+        ],
+        "option_bold": [
+          "event_20230817_cn",
+          "event_20250912_cn"
         ]
       },
       "Mode": {
@@ -5329,6 +5352,7 @@
         "option_bold": [
           "event_20230914_cn",
           "event_20250227_cn"
+
         ]
       },
       "Mode": {
@@ -5713,6 +5737,7 @@
         "type": "state",
         "value": "campaign_main",
         "option": [
+
           "event_20230914_cn",
           "event_20250227_cn"
         ],
@@ -5731,6 +5756,7 @@
         "option_bold": [
           "event_20230914_cn",
           "event_20250227_cn"
+
         ]
       },
       "Mode": {
@@ -8274,6 +8300,7 @@
           "sirius",
           "new_jersey",
           "taihou"
+
         ]
       }
     },
@@ -9346,3 +9373,4 @@
     }
   }
 }
+

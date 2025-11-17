@@ -197,7 +197,11 @@ class Combat(Level, HPBalancer, Retirement, SubmarineCall, CombatAuto, CombatMan
         if balance_hp:
             self.hp_balance()
 
-        for _ in self.loop():
+        while 1:
+            if skip_first_screenshot:
+                skip_first_screenshot = False
+            else:
+                self.device.screenshot()
 
             if self.appear(BATTLE_PREPARATION, offset=(20, 20)):
                 if self.handle_combat_automation_set(auto=auto == 'combat_auto'):
@@ -324,7 +328,8 @@ class Combat(Level, HPBalancer, Retirement, SubmarineCall, CombatAuto, CombatMan
         confirm_timer = Timer(10)
         confirm_timer.start()
 
-        for _ in self.loop():
+        while 1:
+            self.device.screenshot()
 
             if not confirm_timer.reached():
                 if self.handle_combat_automation_confirm():
@@ -513,7 +518,8 @@ class Combat(Level, HPBalancer, Retirement, SubmarineCall, CombatAuto, CombatMan
         self.device.click_record_clear()
         battle_status = False
         exp_info = False  # This is for the white screen bug in game
-        for _ in self.loop():
+        while 1:
+            self.device.screenshot()
 
             # Expected end
             if isinstance(expected_end, str):

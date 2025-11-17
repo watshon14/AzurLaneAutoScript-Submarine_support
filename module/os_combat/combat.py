@@ -49,7 +49,11 @@ class Combat(Combat_, MapEventHandler):
         # if balance_hp:
         #     self.hp_balance()
 
-        for _ in self.loop():
+        while 1:
+            if skip_first_screenshot:
+                skip_first_screenshot = False
+            else:
+                self.device.screenshot()
 
             if self.appear(BATTLE_PREPARATION):
                 if self.handle_combat_automation_set(auto=auto == 'combat_auto'):

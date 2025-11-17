@@ -277,6 +277,15 @@ GemsFarming:
   CommonDD:
     value: any
     option: [ any, favourite, aulick_or_foote , cassin_or_downes, z20_or_z21 ]
+  EquipmentCode:
+    type: textarea
+    mode: yaml
+    value: |-
+      DD: null
+      bogue: null
+      hermes: null
+      langley: null
+      ranger: null
   CommissionLimit: true
 
 # ==================== Event ====================
@@ -591,7 +600,7 @@ PrivateQuarters:
     TargetInteract: true
     TargetShip:
       value: anchorage
-      option: [ anchorage, noshiro, sirius, new_jersey, taihou ]
+      option: [ anchorage, noshiro, sirius, new_jersey ]
 # ==================== Daily ====================
 
 Daily:

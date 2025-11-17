@@ -1,10 +1,5 @@
 **| [English](README_en.md) | 简体中文 | [日本語](README_jp.md) |**
 
----
-# See submarine_gem_farming_update.md for submarine support
-# Edited files are located at submarine_gem_farming folder for reference
----
-
 # AzurLaneAutoScript
 
 #### Discord [![](https://img.shields.io/discord/720789890354249748?logo=discord&logoColor=ffffff&color=4e4c97)](https://discord.gg/AQN6GeJ) QQ群  ![](https://img.shields.io/badge/QQ%20Group-1087735381-4e4c97)

@@ -13,9 +13,8 @@
 *.yaml text eol=lf
 *.json text eol=lf
 *.html text eol=lf
-
-# Keep local copy of these files during merges (use the 'ours' merge driver)
 config/template.json merge=ours
 module/config/argument/args.json merge=ours
 module/config/argument/override.yaml merge=ours
 module/config/argument/task.yaml merge=ours
+
