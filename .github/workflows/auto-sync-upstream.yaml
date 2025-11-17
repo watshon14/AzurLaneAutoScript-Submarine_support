@@ -1,0 +1,103 @@
+name: Auto sync upstream (with protected-file check)
+permissions:
+  contents: write
+  issues: write
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *' # runs daily; change as needed
+env:
+  UPSTREAM_REPO: ${{ secrets.UPSTREAM_REPO }}
+  PROTECTED_FILES: ''
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Configure git and fetch upstream
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if [ -z "${{ secrets.UPSTREAM_REPO }}" ]; then
+            echo "ERROR: secrets.UPSTREAM_REPO not set. Set it to owner/repo of upstream."
+            exit 1
+          fi
+          if [ -n "${{ secrets.UPSTREAM_TOKEN }}" ]; then
+            UPSTREAM_URL="https://x-access-token:${{ secrets.UPSTREAM_TOKEN }}@github.com/${{ secrets.UPSTREAM_REPO }}"
+          else
+            UPSTREAM_URL="https://github.com/${{ secrets.UPSTREAM_REPO }}"
+          fi
+          if ! git remote get-url upstream >/dev/null 2>&1; then
+            git remote add upstream "$UPSTREAM_URL" || true
+          else
+            git remote set-url upstream "$UPSTREAM_URL"
+          fi
+          git fetch upstream --depth=1 || git fetch upstream
+          git fetch origin --depth=1 || git fetch origin
+      - id: check
+        name: Check upstream for protected-file changes
+        run: |
+          LOCAL_BRANCH=origin/master
+          UPSTREAM_BRANCH=upstream/master
+          DIFF=$(git diff --name-only "$LOCAL_BRANCH" "$UPSTREAM_BRANCH" || true)
+          echo "Upstream -> origin diff:"
+          echo "$DIFF"
+          echo "changed_files<<EOF" >> $GITHUB_OUTPUT
+          echo "$DIFF" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          PROT_CHANGED=false
+          CHANGED_LIST=""
+          for f in $PROTECTED_FILES; do
+            if echo "$DIFF" | grep -F -x -q "$f"; then
+              PROT_CHANGED=true
+              CHANGED_LIST="$CHANGED_LIST $f"
+            fi
+          done
+          echo "PROTECTED_CHANGED=$PROT_CHANGED" >> $GITHUB_OUTPUT
+          echo "changed_list<<EOF" >> $GITHUB_OUTPUT
+          echo "$CHANGED_LIST" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+      - name: Create issue if protected files changed (no merge)
+        if: steps.check.outputs.PROTECTED_CHANGED == 'true'
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const changedList = (process.env.CHANGED_LIST || '').trim();
+            const changedFiles = (process.env.CHANGED_FILES || '').trim();
+            const upstream = process.env.UPSTREAM_REPO || '';
+            const title = "Upstream update contains protected file changes";
+            const body = "The upstream repository '" + upstream + "' has updates that modify protected files in branch 'master'.\n\n" +
+                         "Changed protected file(s):\n" +
+                         "```\n" +
+                         changedList +
+                         "\n```\n\n" +
+                         "Full upstream->origin changed files:\n" +
+                         "```\n" +
+                         changedFiles +
+                         "\n```\n\n" +
+                         "This workflow did NOT merge upstream/master into origin/master. Please review upstream changes and decide how to proceed.";
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: title,
+              body: body
+            });
+        env:
+          UPSTREAM_REPO: ${{ env.UPSTREAM_REPO }}
+          CHANGED_LIST: ${{ steps.check.outputs.changed_list }}
+          CHANGED_FILES: ${{ steps.check.outputs.changed_files }}
+      - name: Merge upstream and push
+        if: steps.check.outputs.PROTECTED_CHANGED == 'false'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --global merge.ours.driver true || true
+          git checkout master
+          git branch backup-before-upstream-merge-$(date +%s)
+          git merge --no-edit upstream/master
+          git push origin master
